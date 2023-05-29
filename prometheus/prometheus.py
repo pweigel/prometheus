@@ -14,7 +14,7 @@ from time import time
 from jax import random  # noqa: E402
 
 from .utils import (
-    config_mims, clean_config,
+    config_mims, clean_config, regularize_string,
     UnknownInjectorError, UnknownLeptonPropagatorError,
     UnknownPhotonPropagatorError, NoInjectionError,
     InjectorNotImplementedError, CannotLoadDetectorError
@@ -99,6 +99,7 @@ class Prometheus(object):
             config.photon_propagator,
         )
         
+        self.config = config
         self._end_timing_misc = time()
 
     @property
@@ -113,28 +114,37 @@ class Prometheus(object):
 
     def inject(self):
         """Determines initial neutrino and final particle states according to config"""
+        config = self.config
         injection_config = config.injection
+        
+        _injector = getattr(
+            RegisteredInjectors,
+            regularize_string(injection_config["name"])
+        )
+        
         if injection_config["inject"]:
 
             from .injection import INJECTOR_DICT
-            if self._injector not in INJECTOR_DICT.keys():
-                raise InjectorNotImplementedError(str(self._injector) + " is not a registered injector" )
+            if _injector not in INJECTOR_DICT.keys():
+                raise InjectorNotImplementedError(str(_injector) + " is not a registered injector" )
 
             injection_config["simulation"]["random_state_seed"] = (
                 config.run["random_state_seed"]
             )
-            INJECTOR_DICT[self._injector](
+            INJECTOR_DICT[_injector](
                 injection_config["paths"],
                 injection_config["simulation"],
                 detector_offset=self.detector.offset
             )
-        self._injection = INJECTION_CONSTRUCTOR_DICT[self._injector](
+        self._injection = INJECTION_CONSTRUCTOR_DICT[_injector](
             injection_config["paths"]["injection_file"]
         )
 
     # We should factor out generating losses and photon prop
     def propagate(self):
         """Calculates energy losses, generates photon yields, and propagates photons"""
+        config = self.config
+        
         if config.photon_propagator["name"].lower() == "olympus":  # TODO: (Philip) Config should ensure lowercase names
             rstate = np.random.RandomState(config.run["random_state_seed"])
             rstate_jax = random.PRNGKey(config.run["random_state_seed"])
@@ -199,6 +209,8 @@ class Prometheus(object):
     def sim(self):
         """Performs injection of precipitating interaction, calculates energy losses,
         calculates photon yield, propagates photons, and save resultign photons"""
+        config = self.config
+        
         if "runtime" in config.photon_propagator.keys():
             config.photon_propagator["runtime"] = None
         start_inj = time()
@@ -222,6 +234,7 @@ class Prometheus(object):
     def construct_output(self):
         """Constructs a parquet file with metadata from the generated files.
         Currently this still treats olympus and ppc output differently."""
+        config = self.config
         # sim_switch = config["photon propagator"]["name"]
 
         from .utils.serialization import serialize_particles_to_awkward, set_serialization_index
