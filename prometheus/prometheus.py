@@ -19,10 +19,13 @@ from .utils import (
     UnknownPhotonPropagatorError, NoInjectionError,
     InjectorNotImplementedError, CannotLoadDetectorError
 )
-from .config import config
+from .config import Configuration
 from .detector import Detector
 from .injection import RegisteredInjectors, INJECTION_CONSTRUCTOR_DICT
-from .lepton_propagation import RegisteredLeptonPropagators
+from .lepton_propagation import (
+    get_lepton_propagagtor,
+    RegisteredLeptonPropagators
+)
 from .photon_propagation import (
     get_photon_propagator,
     RegisteredPhotonPropagators
@@ -67,8 +70,10 @@ class Prometheus(object):
 
         """
         self._start_timing_misc = time()
-        if userconfig is not None:
-            config.from_yaml(userconfig)
+        if type(userconfig) == str:  # Path to yaml
+            config = Configuration().from_yaml(userconfig)
+        elif type(userconfig) == Configuration:
+            config = userconfig
 
         if detector is None and config.detector["geo_file"] is None:
             raise CannotLoadDetectorError("No Detector provided and no geo file path given in config")
@@ -81,11 +86,13 @@ class Prometheus(object):
         self._injection = None
 
         config_mims(config, self.detector)
-        clean_config(config)
+        # clean_config(config)  # TODO: (Philip) Do we need to clean the config?
         
+        LeptonPropagator = get_lepton_propagagtor(config.lepton_propagator["name"])
+        import proposal as pp  # TODO: (Philip) Should this go somewhere else?
         pp.RandomGenerator.get().set_seed(config.run["random_state_seed"])
 
-        self._lepton_propagator = LeptonPropagator(lepton_propagator)
+        self._lepton_propagator = LeptonPropagator(config.lepton_propagator)
         self._photon_propagator = get_photon_propagator(config.photon_propagator["name"])(
             self._lepton_propagator,
             self.detector,

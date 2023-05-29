@@ -1,0 +1,209 @@
+###########################################################################
+# General inputs
+###########################################################################
+general: {
+    # Random state seed
+    version: 'github',
+    RESOURCES_DIR: '/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/pweigel/GNN/prometheus/resources',
+    log_level: 'DEBUG',
+    warn_config_overwrite: True  # This will warn you if a config setting is overwritten
+}
+
+###########################################################################
+# Scenario input
+###########################################################################
+run: {
+    run_number: 1337,
+    nevents: 10,
+    storage_prefix: './output/',
+    # Random seed will follow run number if None
+    outfile: ,
+    random_state_seed: ,
+}
+
+###########################################################################
+# Detector
+###########################################################################
+detector: {
+    geo_file: , # Name of the file to use for detector
+}
+
+###########################################################################
+# Injection
+###########################################################################
+injection: {
+    name: 'LeptonInjector',
+    LeptonInjector: {
+        inject: True,
+        paths: {
+            install_location: '/opt/LI/install/lib/python3.9/site-packages',
+            xsec_dir: '{RESOURCES_DIR}/cross_section_splines/',
+            # These fields will be set with output prefix and run number
+            earth_model_location: ,
+            injection_file: ,
+            lic_file: ,
+            diff_xsec: ,
+            total_xsec: ,
+        },
+        simulation: {
+            final_state_1: 'MuMinus',
+            final_state_2: 'Hadrons',
+            minimal_energy: 1e2, # GeV
+            maximal_energy: 1e6, # GeV
+            power_law: 1.0, # Energies picked by E^{-(power law)}
+            min_zenith: 0.0, # degree
+            max_zenith: 180.0, # degree
+            min_azimuth: 0.0, # degree
+            max_azimuth: 360.0, # degree
+            # The following None params will be set internally unless specified
+            is_ranged: True,
+            injection_radius: 900, # m
+            endcap_length: 900, # m
+            cylinder_radius: 700, # m
+            cylinder_height: 1000, # m
+            earth_model: ,
+        },
+    },
+
+    Prometheus: {
+        # TODO make error if this is set to True
+        inject: False,
+        paths: {
+            injection_file: ,
+        },
+        simulation: {}
+    },
+    GENIE: {
+        # TODO make error if this is set to True
+        inject: False,
+        paths: {
+            injection_file: ,
+        },
+        simulation: {}
+    }
+}
+
+###########################################################################
+# Lepton propagator
+###########################################################################
+lepton_propagator: {
+    name: 'new_proposal',
+    # PROPOSAL with versions >= 7
+    new_proposal: {
+        paths: {
+            tables_path: '{RESOURCES_DIR}/PROPOSAL_tables/',
+            earth_model_location: ,
+        },
+        simulation: {
+            # TODO Maybe this should all be in M
+            #'track length': 5000,
+            # TODO figure out why this breaks for 1e-2
+            vcut: 1,
+            ecut: 0.5, # GeV
+            soft_losses: False, # These are particles that don't generate cherenkov light
+            interpolation: True,
+            lpm_effect: True,
+            continuous_randomization: True,
+            soft_losses: True,
+            interpolate: True,
+            scattering_model: 'Moliere',
+            #'maximum radius': 1e18, # m
+            # all none elements will be set off detector config settings
+            #'inner radius': None,
+            propagation_padding: , # m
+            # TODO is this being used
+            medium: ,
+        },
+    },
+    # PROPOSAL with versions <= 6
+    old_proposal: {
+        paths: {
+            tables_path: '~/.local/share/PROPOSAL/tables',
+            earth_model_location: ,
+        },
+        simulation: {
+            #'track length': 5000,
+            vcut: 1,
+            ecut: 0.1, # GeV
+            soft_losses: False,
+            interpolation: True,
+            lpm_effect: True,
+            continuous_randomization: True,
+            soft_losses: True,
+            scattering_model: 'Moliere',
+            # 'force propagation params': False,
+            #'maximum radius' : 1e18, # m
+            # all none elements will be set off detector config settings
+            #'inner radius': None,
+            propagation_padding: ,
+            medium: ,
+        }
+    }
+}
+
+###########################################################################
+# Photon propagator
+###########################################################################
+photon_propagator: {
+    name: 'PPC', # We will set this based on detector medium
+    photon_field_name: 'photons',
+
+    olympus: {
+        paths: {
+            location: '{RESOURCES_DIR}/olympus_resources/',
+            photon_model: 'pone_config.json',
+            flow: 'photon_arrival_time_nflow_params.pickle',
+            counts: 'photon_arrival_time_counts_params.pickle',
+            #photon_field_name: 'photons',
+            #outfile: None
+        },
+        simulation: {
+            files: True,
+            wavelength: 700,  # in nm
+            splitter: 100000,  # Module chunks to work on at once (higher = faster but more memory)
+        },
+        particles:
+        {
+            track_particles: [13, -13],
+            explicit: [11, -11, 111, 211, 13, -13, 15, -15],
+            replacement: 2212,
+        },
+    },
+    PPC_CUDA: {
+        paths: {
+            location: '{RESOURCES_DIR}/PPC_executables/PPC_CUDA/',
+            force: False,
+            ppc_tmpdir: './.ppc_tmp',
+            ppc_tmpfile: '.event_hits.ppc.tmp',
+            f2k_tmpfile: '.event_losses.f2k.tmp',
+            ppc_prefix: '',
+            f2k_prefix: '',
+            ppctables: '{RESOURCES_DIR}/PPC_tables/ic_accept_all/',
+            ppc_exe: '{RESOURCES_DIR}/PPC_executables/PPC_CUDA/ppc', # binary executable
+            #"outfile": None
+        },
+        simulation: {
+            device: 0, # GPU,
+            supress_output: True,
+        }
+    },
+    PPC: {
+        paths: {
+            location: '{RESOURCES_DIR}/PPC_executables/PPC/',
+            force: False,
+            ppc_tmpdir: './.ppc_tmp',
+            ppc_tmpfile: '.event_hits.ppc.tmp',
+            f2k_tmpfile: '.event_losses.f2k.tmp',
+            ppc_prefix: '',
+            f2k_prefix: '',
+            ppctables: '{RESOURCES_DIR}/PPC_tables/ic_accept_all/',
+            ppc_exe: '{RESOURCES_DIR}/PPC_executables/PPC/ppc',  # binary executable
+            #photon_field_name: 'photons',
+            #outfile: ,
+        },
+        simulation: {
+            device: 0,  # CPU
+            supress_output: True
+        }
+    },
+}

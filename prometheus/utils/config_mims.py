@@ -64,7 +64,7 @@ def config_mims(config, detector) -> None:
         earth_model_file = EARTH_MODEL_DICT[detector.medium.name]
 
     injection_config_mims(
-        config.injection[config.injection["name"]],
+        config.injection,
         detector,
         config.run["nevents"],
         config.run["random_state_seed"],
@@ -83,7 +83,7 @@ def config_mims(config, detector) -> None:
         output_prefix
     )
     
-    check_consistency(config)
+    # check_consistency(config)
 
 def check_consistency(config: dict) -> None:
 

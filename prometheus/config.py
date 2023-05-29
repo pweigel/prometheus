@@ -73,7 +73,7 @@ class Configuration(dict):
 
     @property
     def detector(self):
-        return self['detector_config']
+        return self['detector']
     
     @property
     def injection(self):
@@ -145,7 +145,7 @@ class Configuration(dict):
             lepton_prop_version = None
 
         self['lepton_propagator'] = config['lepton_propagator'][lepton_prop_name]
-        self['lepton_propagator'].update({'version': lepton_prop_version})  # Add PROPOSAL version
+        self['lepton_propagator']['version'] = lepton_prop_version  # Add PROPOSAL version
           
         photon_prop_name = config['photon_propagator']['name']
         self['photon_propagator'] = config['photon_propagator'][photon_prop_name]
@@ -161,14 +161,14 @@ class Configuration(dict):
         
         # Update the subconfigs to include any parameters in the level above
         self['injection'].update(
-            {k: v for k, v in self['injection'].items() if not isinstance(v, Mapping)})
+            {k: v for k, v in config['injection'].items() if not isinstance(v, Mapping)})
         
         self['lepton_propagator'].update(
-            {k: v for k, v in self['lepton_propagator'].items() if not isinstance(v, Mapping)})
+            {k: v for k, v in config['lepton_propagator'].items() if not isinstance(v, Mapping)})
         
         self['photon_propagator'].update(
-            {k: v for k, v in self['photon_propagator'].items() if not isinstance(v, Mapping)})
-        
+            {k: v for k, v in config['photon_propagator'].items() if not isinstance(v, Mapping)})
+
         if 'warn_config_overwrite' in self.general.keys():
             self._warn_overwrite = self.general['warn_config_overwrite']
         
@@ -206,4 +206,4 @@ class Configuration(dict):
         return self
 
 #TODO: (Philip) Remove?
-config = Configuration().from_yaml(yaml_file=f"{os.path.dirname(__file__)}/../configs/base.yaml")
+# config = Configuration().from_yaml(yaml_file=f"{os.path.dirname(__file__)}/../configs/base.yaml")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .config import config
+from .config import Configuration
 from .utils import __init__
 from .particle import __init__
 from .detector import __init__, Detector
