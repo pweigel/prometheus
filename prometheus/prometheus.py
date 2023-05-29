@@ -113,7 +113,7 @@ class Prometheus(object):
             if self._injector not in INJECTOR_DICT.keys():
                 raise InjectorNotImplementedError(str(self._injector) + " is not a registered injector" )
 
-            injection_config["simulation"]["random state seed"] = (
+            injection_config["simulation"]["random_state_seed"] = (
                 config.run["random_state_seed"]
             )
             INJECTOR_DICT[self._injector](
@@ -230,7 +230,7 @@ class Prometheus(object):
         if test_arr is not None:
             outarr = ak.Array({
                 'mc_truth': self.injection.to_awkward(),
-                config["photon propagator"]["photon field name"]: test_arr
+                config.photon_propagator["photon_field_name"]: test_arr
             })
         else:
             outarr = ak.Array({

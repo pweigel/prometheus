@@ -4,7 +4,7 @@
 # Config file for the pr_dformat package.
 
 from typing import Dict, Any
-from collections import Mapping
+from collections.abc import Mapping
 import yaml
 import os
 
@@ -31,7 +31,10 @@ class Configuration(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        self._LeptonPropagator
+        self._injector = None
+        self._lepton_propagator = None
+        self._photon_propagator
+        self._LeptonPropagator = None
         
     def __setitem__(self, key, value) -> None:
         """
@@ -56,8 +59,7 @@ class Configuration(dict):
     
     @property
     def injection(self):
-        name = self['injector']['name']
-        return self['injector'][name].update(name=name) 
+        return self['injector']
     
     @property
     def injector(self):
@@ -65,13 +67,11 @@ class Configuration(dict):
     
     @property
     def lepton_propagator(self):
-        name = self['lepton_propagator']['name']
-        return self['lepton_propagator'][name].update(name=name)
+        return self['lepton_propagator']
     
     @property
     def photon_propagator(self):
-        name = self['photon_propagator']['name']
-        return self['photon_propagator'][name].update(name=name)
+        return self['photon_propagator']
     
     @property
     def LeptonPropagator(self):
@@ -103,23 +103,30 @@ class Configuration(dict):
             name = 'old_proposal'
         else:
             name = 'new_proposal'
-        
-        self['lepton_propagator']['name'] = name
-        self['lepton_propagator']['version'] = pp.__version__
-                
-        return name
+
+        return name, pp.__version
     
-    def _configure(self) -> None:
+    def _configure(self, config: dict) -> None:
         """
         Check that the config is good and set a few things
         """
-        injector_name = self['injector']['name']
         
-        lepton_prop_name = self['lepton_propagator']['name']
+        # Copy the settings that don't require any special treatment
+        for k, v in config.items():
+            if k not in ['injector', 'lepton_propagator', 'photon_propagator']:
+                self[k] = v
+
+        injector_name = config['injector']['name']
+        
+        lepton_prop_name = config['lepton_propagator']['name']
         if lepton_prop_name is None:
-            lepton_prop_name = self._get_proposal()  # This will set name/version
-            
-        photon_prop_name = self['photon_propagator']['name']
+            lepton_prop_name, lepton_prop_version = self._get_proposal()
+        else:
+            lepton_prop_version = None
+                
+        self['lepton_propagator']= {'name': lepton_prop_name, 'version': lepton_prop_version}
+                
+        photon_prop_name = config['photon_propagator']['name']
                 
         if regularize_string(injector_name) not in RegisteredInjectors.list():
             raise UnknownInjectorError(injector_name + "is not supported as an injector!")
@@ -129,8 +136,18 @@ class Configuration(dict):
 
         if regularize_string(photon_prop_name) not in RegisteredPhotonPropagators.list():
             raise UnknownPhotonPropagatorError(photon_prop_name + " is not a known photon propagator")
-    
-    def from_yaml(self, yaml_file: str) -> ConfigClass:
+        
+        # Update the subconfigs to include the parameters in the level above
+        self['injector'].update(config['injector'][name].update(
+            {k: v for k, v in self['injector'] if not isinstance(v, Mappable)}))
+        
+        self['lepton_propagator'].update(config['lepton_propagator'][name].update(
+            {k: v for k, v in self['lepton_propagator'] if not isinstance(v, Mappable)}))
+        
+        self['photon_propagator'].update(config['photon_propagator'][name].update(
+            {k: v for k, v in self['photon_propagator'] if not isinstance(v, Mappable)}))
+        
+    def from_yaml(self, yaml_file: str) -> Configuration:
         """ Update config with yaml file
         Parameters
         ----------
@@ -141,15 +158,13 @@ class Configuration(dict):
         None
         """
         yaml_config = yaml.load(open(yaml_file), Loader=yaml.SafeLoader)
-        self.update(yaml_config)
         
-        self._configure()  # TODO: (Philip) Perhaps the configure method should be a part of
-                           #                an update method override...
+        self._configure(yaml_config)  # TODO: (Philip) Maybe this should be an update override
         
         return self
 
     # TODO: Decide if this is going to be used
-    def from_dict(self, user_dict: Dict[Any, Any]) -> ConfigClass:
+    def from_dict(self, user_dict: Dict[Any, Any]) -> Configuration:
         """ Creates a config from dictionary
         Parameters
         ----------
