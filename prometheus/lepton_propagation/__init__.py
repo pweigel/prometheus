@@ -12,7 +12,7 @@ def get_lepton_propagagtor(name) -> LeptonPropagator:
             'Found PROPOSAL major version {} not consistent with {}!'.format(major_version, name)
         from .old_proposal_lepton_propagator import OldProposalLeptonPropagator
         return OldProposalLeptonPropagator
-    else name == 'new_proposal':
+    elif name == 'new_proposal':
         assert int(pp.__version__.split(".")[0]) >= 7, \
             'Found PROPOSAL major version {} not consistent with {}!'.format(major_version, name)
         from .new_proposal_lepton_propagator import NewProposalLeptonPropagator

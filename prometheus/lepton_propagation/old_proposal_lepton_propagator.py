@@ -121,10 +121,10 @@ def make_sector_defs(earth_file: str, simulation_specs: dict) -> List[pp.SectorD
             medium = MEDIUM_DICT[split_line[2]](rho_bar / test_medium.mass_density)
             sector_def.medium = medium
 
-            sector_def.crosssection_defs.brems_def.lpm_effect = simulation_specs["lpm effect"]
-            sector_def.crosssection_defs.epair_def.lpm_effect = simulation_specs["lpm effect"]
-            sector_def.do_continuous_randomization = simulation_specs["continuous randomization"]
-            sector_def.do_continuous_energy_loss_output = simulation_specs['soft losses']
+            sector_def.crosssection_defs.brems_def.lpm_effect = simulation_specs["lpm_effect"]
+            sector_def.crosssection_defs.epair_def.lpm_effect = simulation_specs["lpm_effect"]
+            sector_def.do_continuous_randomization = simulation_specs["continuous_randomization"]
+            sector_def.do_continuous_energy_loss_output = simulation_specs['soft_losses']
 
             sec_defs.append(sector_def)
             inner_radius = outer_radius
@@ -170,11 +170,11 @@ def make_propagator(
     prop: PROPOSAL propagator for input Particle
     """
     pdef = make_particle_def(particle)
-    detector = make_detector(path_dict["earth model location"])
-    sec_defs = make_sector_defs(path_dict["earth model location"], simulation_specs)
+    detector = make_detector(path_dict["earth_model_location"])
+    sec_defs = make_sector_defs(path_dict["earth_model_location"], simulation_specs)
     interpolation_def = pp.InterpolationDef()
-    interpolation_def.path_to_tables = path_dict["tables path"]
-    interpolation_def.path_to_tables_readonly = path_dict["tables path"]
+    interpolation_def.path_to_tables = path_dict["tables_path"]
+    interpolation_def.path_to_tables_readonly = path_dict["tables_path"]
 
     prop = pp.Propagator(
         pdef, sec_defs, detector, interpolation_def
@@ -230,7 +230,7 @@ def old_proposal_losses(
 class OldProposalLeptonPropagator(LeptonPropagator):
     """Class for propagating charged leptons with PROPOSAL versions <= 6"""
     def __init__(self, config: dict):
-        with open(config["paths"]["earth model location"], "r") as f:
+        with open(config["paths"]["earth_model_location"], "r") as f:
             for line in f:
                 if line[0]=="#" or line[0]==" " or line[:1]=="\n":
                     continue
@@ -298,7 +298,7 @@ class OldProposalLeptonPropagator(LeptonPropagator):
             propagator,
             particle_def,
             particle,
-            self._config["simulation"]["propagation padding"],
+            self._config["simulation"]["propagation_padding"],
             detector.outer_radius + 1000.0,
             detector.offset,
             self._coordinate_shift

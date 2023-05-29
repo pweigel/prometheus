@@ -10,7 +10,6 @@ from typing import List, Union, Tuple
 
 from .module import Module
 from .medium import Medium
-from ..config import config
 
 class IncompatibleSerialNumbersError(Exception):
     """Raised when serial numbers length doesn't match number of DOMs"""

@@ -6,42 +6,42 @@
 # Vaules for default detectors
 detectors = {
     '1': {
-        'detector name': 'IceCube',
-        'file path': '../hebe/data/icecube-geo',
-        'injection radius': 900,
-        'endcap length': 900,
-        'cylinder radius': 700,
-        'cylinder height': 1000,
+        'detector_name': 'IceCube',
+        'file_path': '../hebe/data/icecube-geo',
+        'injection_radius': 900,
+        'endcap_length': 900,
+        'cylinder_radius': 700,
+        'cylinder_height': 1000,
         'medium': 'ice'
     },
 
     '2': {
-        'detector name': 'IceCube-Gen2',
-        'file path': '../hebe/data/icecube_gen2-geo',
-        'injection radius': 2100,
-        'endcap length': 1400,
-        'cylinder radius': 2000,
-        'cylinder height': 1700,
+        'detector_name': 'IceCube-Gen2',
+        'file_path': '../hebe/data/icecube_gen2-geo',
+        'injection_radius': 2100,
+        'endcap_length': 1400,
+        'cylinder_radius': 2000,
+        'cylinder_height': 1700,
         'medium': 'ice'
     },
 
     '3': {
-        'detector name': 'P-ONE',
-        'file path': '../hebe/data/pone_triangle-geo',
-        'injection radius': 650,
-        'endcap length': 300,
-        'cylinder radius': 200,
-        'cylinder height': 1300,       
+        'detector_name': 'P-ONE',
+        'file_path': '../hebe/data/pone_triangle-geo',
+        'injection_radius': 650,
+        'endcap_length': 300,
+        'cylinder_radius': 200,
+        'cylinder_height': 1300,       
         'medium': 'water'
     },
 
     '4': {
-        'detector name': 'GVD',
-        'file path': '../hebe/data/gvd-geo',
-        'injection radius': 500,
-        'endcap length': 300,
-        'cylinder radius': 300,
-        'cylinder height': 900,       
+        'detector_name': 'GVD',
+        'file_path': '../hebe/data/gvd-geo',
+        'injection_radius': 500,
+        'endcap_length': 300,
+        'cylinder_radius': 300,
+        'cylinder_height': 900,       
         'medium': 'water'
     }
 }

@@ -75,15 +75,15 @@ def make_propagator(
     prop: PROPOSAL propagator for input Particle
     """
 
-    pp.InterpolationSettings.tables_path = path_dict["tables path"]
+    pp.InterpolationSettings.tables_path = path_dict["tables_path"]
     pdef = make_particle_definition(particle)
     utilities = make_propagation_utilities(
         pdef,
-        path_dict["earth model location"],
+        path_dict["earth_model_location"],
         simulation_specs
     )
-    geometries = make_geometries(path_dict["earth model location"])
-    density_distrs = make_density_distributions(path_dict["earth model location"])
+    geometries = make_geometries(path_dict["earth_model_location"])
+    density_distrs = make_density_distributions(path_dict["earth_model_location"])
     prop = pp.Propagator(pdef, list(zip(geometries, utilities, density_distrs)))
 
     return prop
@@ -178,7 +178,7 @@ def make_propagation_utilities(
     cuts = pp.EnergyCutSettings(
         simulation_specs["ecut"] * GeV_to_MeV,
         simulation_specs["vcut"],
-        simulation_specs["continuous randomization"]
+        simulation_specs["continuous_randomization"]
     )
     utilities = []
     with open(earth_file, "r") as f:
@@ -314,7 +314,7 @@ def new_proposal_losses(
 class NewProposalLeptonPropagator(LeptonPropagator):
     """Class for propagating charged leptons with PROPOSAL versions >= 7"""
     def __init__(self, config):
-        with open(config["paths"]["earth model location"], "r") as f:
+        with open(config["paths"]["earth_model_location"], "r") as f:
             for line in f:
                 if line[0]=="#" or line[0]==" " or line[:1]=="\n":
                     continue
@@ -381,7 +381,7 @@ class NewProposalLeptonPropagator(LeptonPropagator):
         propped_particle = new_proposal_losses(
             propagator,
             particle,
-            self._config["simulation"]["propagation padding"],
+            self._config["simulation"]["propagation_padding"],
             detector.outer_radius + 1000.0,
             detector.offset,
             self._coordinate_shift

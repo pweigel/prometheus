@@ -100,7 +100,7 @@ def injection_event_from_LI(injection: h5.Group, idx: int) -> LIInjectionEvent:
         None
     )
     final_states = []
-    for final_ctr in [1,2]:
+    for final_ctr in [1, 2]:
         direction = injection[f"final_{final_ctr}"]["Direction"][idx]
         theta = direction[0]
         phi = direction[1]

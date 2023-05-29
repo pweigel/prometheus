@@ -2,7 +2,7 @@
 # Name: config.py
 # Copyright (C) 2022 Stephan Meighen-Berger
 # Config file for the pr_dformat package.
-
+from __future__ import annotations
 from typing import Dict, Any
 from collections.abc import Mapping
 import yaml
@@ -14,6 +14,26 @@ from .photon_propagation import RegisteredPhotonPropagators
 from .utils import regularize_string
 
 RESOURCES_DIR = os.path.abspath(f"{os.path.dirname(__file__)}/../resources/")
+
+# class TestConfiguration(dict):
+#     # TODO: experimental
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+        
+#         if 'name' in kwargs.keys():
+#             self.name = kwargs['name']
+            
+#             if 'parent' in kwargs.keys():
+#                 if kargs['parent'] is not None:
+#                     self.parent = kwargs['parent']
+#                     self.parent[self.name] = self
+
+#     def __setitem__(self, key, value):
+#         super().__setitem__(key, value)
+        
+#         if self.parent is not None:
+#             self.parent[self.name].update({key: value})
+
 
 class Configuration(dict):
     """ The configuration class. This is used
@@ -31,18 +51,16 @@ class Configuration(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        self._injector = None
-        self._lepton_propagator = None
-        self._photon_propagator
-        self._LeptonPropagator = None
+        self._warn_overwrite = True
         
     def __setitem__(self, key, value) -> None:
         """
         Simple override to let the user know if a config
         key is being overwritten.
         """
-        if key in self:
+        if key in self and self._warn_overwrite:
             print('Overwriting key {}!'.format(key))
+
         super().__setitem__(key, value)
     
     @property
@@ -59,7 +77,7 @@ class Configuration(dict):
     
     @property
     def injection(self):
-        return self['injector']
+        return self['injection']
     
     @property
     def injector(self):
@@ -83,7 +101,7 @@ class Configuration(dict):
         # TODO: May not use this
         if name == 'old_proposal':
             from .lepton_propagation import OldProposalLeptonPropagator as LeptonPropagator
-        else name == 'new_proposal':
+        elif name == 'new_proposal':
             from .lepton_propagation import NewProposalLeptonPropagator as LeptonPropagator
         else:
             LeptonPropagator = None
@@ -117,36 +135,43 @@ class Configuration(dict):
             if k not in ['injector', 'lepton_propagator', 'photon_propagator']:
                 self[k] = v
 
-        injector_name = config['injector']['name']
+        injector_name = config['injection']['name']
+        self['injection'] = config['injection'][injector_name]
         
         lepton_prop_name = config['lepton_propagator']['name']
         if lepton_prop_name is None:
             lepton_prop_name, lepton_prop_version = self._get_proposal()
         else:
             lepton_prop_version = None
-                
-        self['lepton_propagator']= {'name': lepton_prop_name, 'version': lepton_prop_version}
-                
+
+        self['lepton_propagator'] = config['lepton_propagator'][lepton_prop_name]
+        self['lepton_propagator'].update({'version': lepton_prop_version})  # Add PROPOSAL version
+          
         photon_prop_name = config['photon_propagator']['name']
-                
+        self['photon_propagator'] = config['photon_propagator'][photon_prop_name]
+        
         if regularize_string(injector_name) not in RegisteredInjectors.list():
             raise UnknownInjectorError(injector_name + "is not supported as an injector!")
 
         if regularize_string(lepton_prop_name) not in RegisteredLeptonPropagators.list():
-            raise UnknownLeptonPropagatorError(lepton_prop_name + "is not a known lepton propagator")
+            raise UnknownLeptonPropagatorError(lepton_prop_name + "is not a known lepton propagator!")
 
         if regularize_string(photon_prop_name) not in RegisteredPhotonPropagators.list():
-            raise UnknownPhotonPropagatorError(photon_prop_name + " is not a known photon propagator")
+            raise UnknownPhotonPropagatorError(photon_prop_name + " is not a known photon propagator!")
         
-        # Update the subconfigs to include the parameters in the level above
-        self['injector'].update(config['injector'][name].update(
-            {k: v for k, v in self['injector'].items() if not isinstance(v, Mappable)}))
+        # Update the subconfigs to include any parameters in the level above
+        self['injection'].update(
+            {k: v for k, v in self['injection'].items() if not isinstance(v, Mapping)})
         
-        self['lepton_propagator'].update(config['lepton_propagator'][name].update(
-            {k: v for k, v in self['lepton_propagator'].items() if not isinstance(v, Mappable)}))
+        self['lepton_propagator'].update(
+            {k: v for k, v in self['lepton_propagator'].items() if not isinstance(v, Mapping)})
         
-        self['photon_propagator'].update(config['photon_propagator'][name].update(
-            {k: v for k, v in self['photon_propagator'].items() if not isinstance(v, Mappable)}))
+        self['photon_propagator'].update(
+            {k: v for k, v in self['photon_propagator'].items() if not isinstance(v, Mapping)})
+        
+        if 'warn_config_overwrite' in self.general.keys():
+            self._warn_overwrite = self.general['warn_config_overwrite']
+        
         
     def from_yaml(self, yaml_file: str) -> Configuration:
         """ Update config with yaml file
@@ -175,9 +200,10 @@ class Configuration(dict):
         -------
         None
         """
-        raise NotImplementedError, 'This loading method is not yet implemented!'
+        raise NotImplementedError
     
         self.update(user_dict)
         return self
 
+#TODO: (Philip) Remove?
 config = Configuration().from_yaml(yaml_file=f"{os.path.dirname(__file__)}/../configs/base.yaml")

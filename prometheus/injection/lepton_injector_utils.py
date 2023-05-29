@@ -45,8 +45,8 @@ def make_new_LI_injection(
         except ImportError:
             import sys
             print('Trying custom path set in config')
-            print(f"The path is {path_dict['install location']}")
-            sys.path.append(path_dict['install location'])
+            print(f"The path is {path_dict['install_location']}")
+            sys.path.append(path_dict['install_location'])
             import EarthModelService as em
             import LeptonInjector as LI
     except ImportError:
@@ -54,15 +54,15 @@ def make_new_LI_injection(
     n_events = injection_specs["nevents"]
     xs_folder = os.path.join(
         os.path.dirname(__file__),
-        path_dict["xsec dir"]
+        path_dict["xsec_dir"]
     )
-    diff_xs = path_dict['diff xsec']
-    total_xs = path_dict['total xsec']
-    is_ranged = injection_specs["is ranged"]
+    diff_xs = path_dict['diff_xsec']
+    total_xs = path_dict['total_xsec']
+    is_ranged = injection_specs["is_ranged"]
     particles = []
     for id_name, names in enumerate([
-        injection_specs["final state 1"],
-        injection_specs["final state 2"]
+        injection_specs["final_state_1"],
+        injection_specs["final_state_2"]
     ]):
         particles.append(getattr(LI.Particle.ParticleType, names))
     
@@ -74,17 +74,17 @@ def make_new_LI_injection(
         total_xs,
         is_ranged
     )
-    min_E = injection_specs["minimal energy"]
-    max_E = injection_specs["maximal energy"]
-    gamma = injection_specs["power law"]
-    min_zenith = np.radians(injection_specs["min zenith"])
-    max_zenith = np.radians(injection_specs["max zenith"])
-    min_azimuth = np.radians(injection_specs["min azimuth"])
-    max_azimuth = np.radians(injection_specs["max azimuth"])
-    inject_radius = injection_specs["injection radius"]
-    endcap_length = injection_specs["endcap length"]
-    cyinder_radius = injection_specs["cylinder radius"]
-    cyinder_height = injection_specs["cylinder height"]
+    min_E = injection_specs["minimal_energy"]
+    max_E = injection_specs["maximal_energy"]
+    gamma = injection_specs["power_law"]
+    min_zenith = np.radians(injection_specs["min_zenith"])
+    max_zenith = np.radians(injection_specs["max_zenith"])
+    min_azimuth = np.radians(injection_specs["min_azimuth"])
+    max_azimuth = np.radians(injection_specs["max_azimuth"])
+    inject_radius = injection_specs["injection_radius"]
+    endcap_length = injection_specs["endcap_length"]
+    cyinder_radius = injection_specs["cylinder_radius"]
+    cyinder_height = injection_specs["cylinder_height"]
     # construct the controller
     if is_ranged:
         controller = LI.Controller(
@@ -97,8 +97,8 @@ def make_new_LI_injection(
             max_azimuth, min_zenith, max_zenith,
             inject_radius, endcap_length, cyinder_radius, cyinder_height
         )
-    earth_model_dir = "/".join(path_dict["earth model location"].split("/")[:-2]) + "/"
-    earth_model_name = path_dict["earth model location"].split("/")[-1].split(".")[0]
+    earth_model_dir = "/".join(path_dict["earth_model_location"].split("/")[:-2]) + "/"
+    earth_model_name = path_dict["earth_model_location"].split("/")[-1].split(".")[0]
     earth = em.EarthModelService(
         "Zorg",
         earth_model_dir,
@@ -114,11 +114,11 @@ def make_new_LI_injection(
     #    earth_model_dir
     #    #path_dict["earth model location"]
     #)
-    controller.setSeed(injection_specs["random state seed"])
-    controller.NameOutfile(path_dict["injection file"])
-    controller.NameLicFile(path_dict["lic file"])
+    controller.setSeed(injection_specs["random_state_seed"])
+    controller.NameOutfile(path_dict["injection_file"])
+    controller.NameLicFile(path_dict["lic_file"])
 
     # run the simulation
     controller.Execute()
     # Translate injection to detector coordinate system
-    apply_detector_offset(path_dict["injection file"], detector_offset)
+    apply_detector_offset(path_dict["injection_file"], detector_offset)

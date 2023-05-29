@@ -1,5 +1,4 @@
 import os
-from ..config import Configuration
 
 RESOURCES_DIR = os.path.abspath(f"{os.path.dirname(__file__)}/../../resources/")
 INTERACTION_DICT = {
@@ -30,7 +29,7 @@ EARTH_MODEL_DICT = {
 }
 
 
-def config_mims(config: Configuration, detector) -> None:
+def config_mims(config, detector) -> None:
     """Sets parameters of config so that they are consistent
     
     params

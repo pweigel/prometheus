@@ -5,6 +5,8 @@ general: {
     # Random state seed
     version: 'github',
     RESOURCES_DIR: '/n/holylfs05/LABS/arguelles_delgado_lab/Everyone/pweigel/GNN/prometheus/resources',
+    log_level: 'DEBUG',
+    warn_config_overwrite: True  # This will warn you if a config setting is overwritten
 }
 
 ###########################################################################
@@ -85,7 +87,7 @@ injection: {
 # Lepton propagator
 ###########################################################################
 lepton_propagator: {
-    name: 'new proposal',
+    name: 'new_proposal',
     # PROPOSAL with versions >= 7
     new_proposal: {
         paths: {
@@ -143,7 +145,7 @@ lepton_propagator: {
 # Photon propagator
 ###########################################################################
 photon_propagator: {
-    name: , # We will set this based on detector medium
+    name: 'PPC', # We will set this based on detector medium
     photon_field_name: 'photons',
 
     olympus: {

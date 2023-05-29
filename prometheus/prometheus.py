@@ -30,7 +30,7 @@ from .photon_propagation import (
 
 os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"] = "0.5"
 
-class PpcTmpdirExistsError(Exception):
+class PpcTmpdirExistsError(Exception):  # TODO: (Philip) This should be a util
     """Raised if PPC tmpdir exists and force not specified"""
     def __init__(self, path):
         self.message = f"{path} exists. Please remove it or specify force in the config"
@@ -136,7 +136,7 @@ class Prometheus(object):
                 "random state": rstate,
                 "random state jax": rstate_jax,
             }
-        elif config.photon_propagator["name"].lower()=="ppc":  # TODO: (Philip) Combine this and PPC_CUDA?
+        elif config.photon_propagator["name"].lower() == "ppc":  # TODO: (Philip) Combine this and PPC_CUDA?
             from glob import glob
             import shutil
             from .utils.clean_ppc_tmpdir import clean_ppc_tmpdir
@@ -182,18 +182,18 @@ class Prometheus(object):
                     pbar.set_description(f"Propagating {final_state}")
                     self._photon_propagator.propagate(final_state)
         
-        if config["photon propagator"]["name"].lower()=="olympus":  # TODO: (Philip) Should the photon props have a cleanup method?
-            config["photon propagator"]["olympus"]["runtime"] = None
-        elif config["photon propagator"]["name"].lower()=="ppc":
+        if config.photon_propagator["name"].lower()=="olympus":  # TODO: (Philip) Should the photon props have a cleanup method?
+            config.photon_propagator["olympus"]["runtime"] = None
+        elif config.photon_propagator["name"].lower()=="ppc":
             clean_ppc_tmpdir(config.photon_propagator['paths']['ppc_tmpdir'])
-        elif config["photon propagator"]["name"].lower()=="ppc_cuda":
+        elif config.photon_propagator["name"].lower()=="ppc_cuda":
             clean_ppc_tmpdir(config.photon_propagator['paths']['ppc_tmpdir'])
 
     def sim(self):
         """Performs injection of precipitating interaction, calculates energy losses,
         calculates photon yield, propagates photons, and save resultign photons"""
-        if "runtime" in config["photon propagator"].keys():
-            config["photon propagator"]["runtime"] = None
+        if "runtime" in config.photon_propagator.keys():
+            config.photon_propagator["runtime"] = None
         start_inj = time()
         self.inject()
         end_inj = time()
