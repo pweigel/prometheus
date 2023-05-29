@@ -13,13 +13,13 @@ setuptools.setup(
     url="https://github.com/Harvard-Neutrino/prometheus",
     packages=setuptools.find_packages(),
     install_requires=[
-	"jax"
-	"pyyaml"
+	    "jax",
+	    "pyyaml",
         "numpy>=1.16.6",
         "awkward>=1.8.0",
         "scipy>=1.2.3",
         "pyarrow>=7.0.0",
-        "json>=2.0.9",
+        # "json>=2.0.9",
         # Should we make this optional
         "tqdm>=4.52.0",
         "jax>=0.2.21",
@@ -31,3 +31,4 @@ setuptools.setup(
         "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)"
     ],
     python_requires='>=3.7',
+)
