@@ -90,7 +90,7 @@ class Configuration(dict):
 
         self._LeptonPropagator = LeptonPropagator
 
-    def _get_proposal(self) -> str:
+    def _get_proposal(self) -> (str, int):
         """
         Check PROPOSAL version, set the proper config settings
         
@@ -99,12 +99,13 @@ class Configuration(dict):
         Lepton propagator name 
         """
         import proposal as pp
-        if int(pp.__version__.split('.')[0]) <= 6:
+        version = int(pp.__version__.split('.')[0])
+        if verion <= 6:
             name = 'old_proposal'
         else:
             name = 'new_proposal'
 
-        return name, pp.__version
+        return name, version
     
     def _configure(self, config: dict) -> None:
         """
