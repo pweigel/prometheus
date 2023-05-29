@@ -42,9 +42,9 @@ def config_mims(config: Configuration, detector) -> None:
     """
     # Set up injection stuff
 
-    if detector.medium.name=="WATER":
+    if detector.medium.name == "WATER":
         config.photon_propagator["name"] = "olympus"
-    elif detector.medium.name=="ICE" and config.photon_propagator["name"] is None:
+    elif detector.medium.name == "ICE" and config.photon_propagator["name"] is None:
         config.photon_propagator["name"] = "PPC"
 
     if config.run["random_state_seed"] is None:
@@ -74,51 +74,59 @@ def config_mims(config: Configuration, detector) -> None:
     )
 
     lepton_prop_config_mims(
-        config.lepton_propagator[config.lepton_propagator["name"]],
+        config.lepton_propagator,
         detector,
         earth_model_file
     )
 
     photon_prop_config_mims(
-        config.photon_propagator[config.photon_propagator["name"]],
+        config.photon_propagator,
         output_prefix
     )
+    
     check_consistency(config)
 
 def check_consistency(config: dict) -> None:
+
     # TODO check whether medium is knowable
     # TODO check if medium is consistent
     
     
-    pass
+    raise NotImplementedError
     #if (
     #    config["simulation"]["medium"] is not None and
     #    config["simulation"]["medium"].upper()!=detector.medium.name
     #):
     #    raise ValueError("Detector and lepton propagator have conflicting media")
 
-def photon_prop_config_mims(config: Configuration, output_prefix: str) -> None:
+def photon_prop_config_mims(config: dict, output_prefix: str) -> None:
     pass
 
 
-def lepton_prop_config_mims(config: Configuration, detector, earth_model_file: str) -> None:
-    config["simulation"]["medium"] = detector.medium.name.capitalize()
-    if config["simulation"]["propagation padding"] is None:
-        config["simulation"]["propagation padding"] = detector.outer_radius
+def lepton_prop_config_mims(
+    subconfig: dict, 
+    detector, 
+    earth_model_file: str
+) -> None:
+    
+    subconfig["simulation"]["medium"] = detector.medium.name.capitalize()
+    
+    if subconfig["simulation"]["propagation_padding"] is None:
+        subconfig["simulation"]["propagation_padding"] = detector.outer_radius
         if detector.medium.name=="WATER":
-            config["simulation"]["propagation padding"] += 50
+            subconfig["simulation"]["propagation_padding"] += 50
         else:
-            config["simulation"]["propagation padding"] += 200
+            subconfig["simulation"]["propagation_padding"] += 200
 
-    if config["paths"]["earth model location"] is None:
+    if subconfig["paths"]["earth_model_location"] is None:
 #        if earth_model_file is None:
 #            earth_model_file = EARTH_MODEL_DICT[detector.medium.name]
-        config["paths"]["earth model location"] = (
+        subconfig["paths"]["earth_model_location"] = (
             f"{RESOURCES_DIR}/earthparams/densities/{earth_model_file}"
         )
 
 def injection_config_mims(
-    config: Configuration,
+    subconfig: dict,
     detector,
     nevents: int,
     seed: int,
@@ -126,33 +134,33 @@ def injection_config_mims(
     earth_model_file: str
 ) -> None:
 
-    if not config["inject"]:
-        del config["simulation"]
+    if not subconfig["inject"]:
+        del subconfig["simulation"]
         return
 
-    if config["paths"]["earth model location"] is None:
+    if subconfig["paths"]["earth_model_location"] is None:
         #earth_model_file = EARTH_MODEL_DICT[detector.medium.name]
-        config["paths"]["earth model location"] = (
+        subconfig["paths"]["earth_model_location"] = (
             os.path.abspath(f"{RESOURCES_DIR}/earthparams/densities/{earth_model_file}")
         )
 
-    if config["simulation"]["is ranged"] is None:
-        config["simulation"]["is ranged"] = False
-        if config["simulation"]["final state 1"] in "MuMinus MuPlus".split():
-            config["simulation"]["is ranged"] = True
+    if subconfig["simulation"]["is_ranged"] is None:
+        subconfig["simulation"]["is_ranged"] = False
+        if subconfig["simulation"]["final_state_1"] in "MuMinus MuPlus".split():
+            subconfig["simulation"]["is_ranged"] = True
 
-    config["simulation"]["nevents"] = nevents
+    subconfig["simulation"]["nevents"] = nevents
     # Make sure seeding is consistent
-    config["simulation"]["random state seed"] = seed
+    subconfig["simulation"]["random_state_seed"] = seed
 
     # Name the h5 file
-    if config["paths"]["injection file"] is None:
-        config["paths"]["injection file"] = (
+    if subconfig["paths"]["injection_file"] is None:
+        subconfig["paths"]["injection_file"] = (
             f"{output_prefix}_LI_output.h5"
         )
     # Name the lic file
-    if config["paths"]["lic file"] is None:
-        config["paths"]["lic file"] = (
+    if subconfig["paths"]["lic_file"] is None:
+        subconfig["paths"]["lic_file"] = (
             f"{output_prefix}_LI_config.lic"
         )
 
@@ -160,45 +168,44 @@ def injection_config_mims(
     # TODO we shouldn't set the scattering length like this
     is_ice = detector.medium.name == "ICE"
     # Set the endcap length
-    if config["simulation"]["endcap length"] is None:
+    if subconfig["simulation"]["endcap_length"] is None:
         endcap = get_endcap(detector.module_coords, is_ice)
-        config["simulation"]["endcap length"] = endcap
+        subconfig["simulation"]["endcap_length"] = endcap
     # Set the injection radius
-    if config["simulation"]["injection radius"] is None:
+    if subconfig["simulation"]["injection_radius"] is None:
         inj_radius = get_injection_radius(detector.module_coords, is_ice)
-        config["simulation"]["injection radius"] = inj_radius
+        subconfig["simulation"]["injection_radius"] = inj_radius
     # Set the cylinder radius and height
     cyl_radius, cyl_height = get_volume(detector.module_coords, is_ice)
-    if config["simulation"]["cylinder radius"] is None:
-        config["simulation"]["cylinder radius"] = cyl_radius
-    if config["simulation"]["cylinder height"] is None:
-        config["simulation"]["cylinder height"] = cyl_height
+    if subconfig["simulation"]["cylinder_radius"] is None:
+        subconfig["simulation"]["cylinder_radius"] = cyl_radius
+    if subconfig["simulation"]["cylinder_height"] is None:
+        subconfig["simulation"]["cylinder_height"] = cyl_height
 
     # Set the interaction
     int_str = INTERACTION_DICT[(
-        config["simulation"]["final state 1"],
-        config["simulation"]["final state 2"]
+        subconfig["simulation"]["final_state_1"],
+        subconfig["simulation"]["final_state_2"]
     )]
-
     
     if int_str in "CC NC".split():
         # Set cross section spline paths
         nutype = "nubar"
         if (
-            "Bar" in config["simulation"]["final state 1"] or \
-            "Plus" in config["simulation"]["final state 1"]
+            "Bar" in subconfig["simulation"]["final_state_1"] or \
+            "Plus" in subconfig["simulation"]["final_state_1"]
         ):
             nutype = "nu"
-        if config["paths"]["diff xsec"] is None:
-            config["paths"]["diff xsec"] = (
-                os.path.abspath(f"{config['paths']['xsec dir']}/dsdxdy_{nutype}_{int_str}_iso.fits")
+        if subconfig["paths"]["diff_xsec"] is None:
+            subconfig["paths"]["diff_xsec"] = (
+                os.path.abspath(f"{subconfig['paths']['xsec_dir']}/dsdxdy_{nutype}_{int_str}_iso.fits")
             )
-        if config["paths"]["total xsec"] is None:
-            config["paths"]["total xsec"] = (
-                os.path.abspath(f"{config['paths']['xsec dir']}/sigma_{nutype}_{int_str}_iso.fits")
+        if subconfig["paths"]["total_xsec"] is None:
+            subconfig["paths"]["total_xsec"] = (
+                os.path.abspath(f"{subconfig['paths']['xsec_dir']}/sigma_{nutype}_{int_str}_iso.fits")
             )
     else:
         # Glashow resonance xs is not set by splines
-        del config["paths"]["xsec dir"]
-        del config["paths"]["diff xsec"] 
-        del config["paths"]["total xsec"] 
+        del subconfig["paths"]["xsec_dir"]
+        del subconfig["paths"]["diff_xsec"] 
+        del subconfig["paths"]["total_xsec"] 

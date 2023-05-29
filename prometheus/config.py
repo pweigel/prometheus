@@ -143,7 +143,8 @@ class Configuration(dict):
         yaml_config = yaml.load(open(yaml_file), Loader=yaml.SafeLoader)
         self.update(yaml_config)
         
-        self._configure()
+        self._configure()  # TODO: (Philip) Perhaps the configure method should be a part of
+                           #                an update method override...
         
         return self
 
@@ -158,6 +159,8 @@ class Configuration(dict):
         -------
         None
         """
+        raise NotImplementedError, 'This loading method is not yet implemented!'
+    
         self.update(user_dict)
         return self
 
