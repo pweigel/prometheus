@@ -11,3 +11,4 @@ from .error_handling import (
     UnknownPhotonPropagatorError, NoInjectionError,
     InjectorNotImplementedError, CannotLoadDetectorError
 )
+from .string_utils import regularize_string

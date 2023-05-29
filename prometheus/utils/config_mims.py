@@ -1,4 +1,5 @@
 import os
+from ..config import Configuration
 
 RESOURCES_DIR = os.path.abspath(f"{os.path.dirname(__file__)}/../../resources/")
 INTERACTION_DICT = {
@@ -29,7 +30,7 @@ EARTH_MODEL_DICT = {
 }
 
 
-def config_mims(config: dict, detector) -> None:
+def config_mims(config: Configuration, detector) -> None:
     """Sets parameters of config so that they are consistent
     
     params
@@ -42,45 +43,44 @@ def config_mims(config: dict, detector) -> None:
     # Set up injection stuff
 
     if detector.medium.name=="WATER":
-        config["photon propagator"]["name"] = "olympus"
-    elif detector.medium.name=="ICE" and config["photon propagator"]["name"] is None:
-        config["photon propagator"]["name"] = "PPC"
+        config.photon_propagator["name"] = "olympus"
+    elif detector.medium.name=="ICE" and config.photon_propagator["name"] is None:
+        config.photon_propagator["name"] = "PPC"
 
-    run_config = config["run"]
-    if run_config["random state seed"] is None:
-        run_config["random state seed"] = run_config["run number"]
+    if config.run["random_state_seed"] is None:
+        config.run["random_state_seed"] = config.run["run_number"]
 
-    output_prefix = os.path.abspath(f"{config['run']['storage prefix']}/{config['run']['run number']}")
-    if config["run"]["outfile"] is None:
-        config["run"]["outfile"] = (
+    output_prefix = os.path.abspath(f"{config.run['storage_prefix']}/{config.run['run_number']}")
+    if config.run["outfile"] is None:
+        config.run["outfile"] = (
             f"{output_prefix}_photons.parquet"
         )
 
     # Find which earth model we think we should be using
     earth_model_file = None
-    base_geofile = os.path.basename(config["detector"]["geo file"])
+    base_geofile = os.path.basename(config.detector["geo_file"])
     if base_geofile in EARTH_MODEL_DICT.keys():
         earth_model_file = EARTH_MODEL_DICT[base_geofile]
     else:
         earth_model_file = EARTH_MODEL_DICT[detector.medium.name]
 
     injection_config_mims(
-        config["injection"][config["injection"]["name"]],
+        config.injection[config.injection["name"]],
         detector,
-        config["run"]["nevents"],
-        config["run"]["random state seed"],
+        config.run["nevents"],
+        config.run["random_state_seed"],
         output_prefix,
         earth_model_file
     )
 
     lepton_prop_config_mims(
-        config["lepton propagator"][config["lepton propagator"]["name"]],
+        config.lepton_propagator[config.lepton_propagator["name"]],
         detector,
         earth_model_file
     )
 
     photon_prop_config_mims(
-        config["photon propagator"][config["photon propagator"]["name"]],
+        config.photon_propagator[config.photon_propagator["name"]],
         output_prefix
     )
     check_consistency(config)
@@ -97,11 +97,11 @@ def check_consistency(config: dict) -> None:
     #):
     #    raise ValueError("Detector and lepton propagator have conflicting media")
 
-def photon_prop_config_mims(config: dict, output_prefix: str) -> None:
+def photon_prop_config_mims(config: Configuration, output_prefix: str) -> None:
     pass
 
 
-def lepton_prop_config_mims(config: dict, detector, earth_model_file: str) -> None:
+def lepton_prop_config_mims(config: Configuration, detector, earth_model_file: str) -> None:
     config["simulation"]["medium"] = detector.medium.name.capitalize()
     if config["simulation"]["propagation padding"] is None:
         config["simulation"]["propagation padding"] = detector.outer_radius
@@ -118,7 +118,7 @@ def lepton_prop_config_mims(config: dict, detector, earth_model_file: str) -> No
         )
 
 def injection_config_mims(
-    config:dict,
+    config: Configuration,
     detector,
     nevents: int,
     seed: int,
