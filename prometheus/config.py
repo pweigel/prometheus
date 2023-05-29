@@ -140,13 +140,13 @@ class Configuration(dict):
         
         # Update the subconfigs to include the parameters in the level above
         self['injector'].update(config['injector'][name].update(
-            {k: v for k, v in self['injector'] if not isinstance(v, Mappable)}))
+            {k: v for k, v in self['injector'].items() if not isinstance(v, Mappable)}))
         
         self['lepton_propagator'].update(config['lepton_propagator'][name].update(
-            {k: v for k, v in self['lepton_propagator'] if not isinstance(v, Mappable)}))
+            {k: v for k, v in self['lepton_propagator'].items() if not isinstance(v, Mappable)}))
         
         self['photon_propagator'].update(config['photon_propagator'][name].update(
-            {k: v for k, v in self['photon_propagator'] if not isinstance(v, Mappable)}))
+            {k: v for k, v in self['photon_propagator'].items() if not isinstance(v, Mappable)}))
         
     def from_yaml(self, yaml_file: str) -> Configuration:
         """ Update config with yaml file
@@ -158,7 +158,7 @@ class Configuration(dict):
         -------
         None
         """
-        yaml_config = yaml.load(open(yaml_file), Loader=yaml.SafeLoader)
+        yaml_config = yaml.load(open(yaml_file, 'r'), Loader=yaml.SafeLoader)
         
         self._configure(yaml_config)  # TODO: (Philip) Maybe this should be an update override
         
